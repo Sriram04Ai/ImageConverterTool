@@ -1,0 +1,31 @@
+name: Build EXE
+
+on:
+  workflow_dispatch:   # lets you trigger manually
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pillow pyinstaller
+
+      - name: Build EXE
+        run: pyinstaller --onefile ImageConverter.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ImageConverter-EXE
+          path: dist/ImageConverter.exe
