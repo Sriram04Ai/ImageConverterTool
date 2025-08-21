@@ -1,0 +1,87 @@
+
+import os
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image
+
+FORMAT_MAP = {
+    "JPG": "JPEG",
+    "PNG": "PNG",
+    "TIFF": "TIFF"
+}
+
+DPI_MAP = {
+    "72 DPI": (72, 72),
+    "300 DPI": (300, 300)
+}
+
+def convert_images():
+    fmt_choice = format_var.get()
+    dpi_choice = dpi_var.get()
+    folder_path = path_entry.get()
+    base_name = name_entry.get().strip()
+
+    if not folder_path or not base_name:
+        messagebox.showerror("Error", "Please enter path and base name.")
+        return
+
+    if not os.path.exists(folder_path):
+        messagebox.showerror("Error", "Invalid folder path.")
+        return
+
+    save_dir = os.path.join(folder_path, "Converted")
+    os.makedirs(save_dir, exist_ok=True)
+
+    images = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+
+    if not images:
+        messagebox.showinfo("No Images", "No files found in the selected folder.")
+        return
+
+    count = 1
+    for img_name in images:
+        img_path = os.path.join(folder_path, img_name)
+        try:
+            with Image.open(img_path) as im:
+                rgb_im = im.convert("RGB") if fmt_choice == "JPG" else im
+                new_name = f"{base_name}_{count:02d}.{fmt_choice.lower()}"
+                save_path = os.path.join(save_dir, new_name)
+                rgb_im.save(save_path, FORMAT_MAP[fmt_choice], dpi=DPI_MAP[dpi_choice])
+                count += 1
+        except Exception as e:
+            print(f"Skipping {img_name}: {e}")
+
+    messagebox.showinfo("Done", f"Converted {count-1} images to {fmt_choice} at {dpi_choice}.")
+
+def browse_path():
+    folder = filedialog.askdirectory()
+    if folder:
+        path_entry.delete(0, tk.END)
+        path_entry.insert(0, folder)
+
+root = tk.Tk()
+root.title("Image Converter Tool")
+
+tk.Label(root, text="Select Format:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+format_var = tk.StringVar(value="JPG")
+tk.OptionMenu(root, format_var, "JPG", "PNG", "TIFF").grid(row=0, column=1, padx=5, pady=5)
+
+tk.Label(root, text="Select DPI:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+dpi_var = tk.StringVar(value="300 DPI")
+tk.OptionMenu(root, dpi_var, "72 DPI", "300 DPI").grid(row=1, column=1, padx=5, pady=5)
+
+tk.Label(root, text="Folder Path:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+path_entry = tk.Entry(root, width=40)
+path_entry.grid(row=2, column=1, padx=5, pady=5)
+tk.Button(root, text="Browse", command=browse_path).grid(row=2, column=2, padx=5, pady=5)
+
+tk.Label(root, text="Base Name:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
+name_entry = tk.Entry(root, width=40)
+name_entry.grid(row=3, column=1, padx=5, pady=5)
+
+tk.Button(root, text="Convert Images", command=convert_images, bg="lightblue").grid(row=4, column=0, columnspan=3, pady=10)
+
+root.mainloop()
+
+pillow
+pyinstaller
